@@ -81,3 +81,21 @@ th { background: #f8fafc; color: #334155; white-space: nowrap; }
 .critical { background: var(--critical); color: var(--critical-text); }
 .warning { background: var(--warning); color: var(--warning-text); }
 .ok { background: var(--ok); color: var(--ok-text); }
+
+.secondary {
+  margin-top: 10px;
+  margin-left: 8px;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.small-btn {
+  padding: 6px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+}

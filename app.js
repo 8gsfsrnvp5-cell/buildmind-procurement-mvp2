@@ -1,4 +1,6 @@
-const materials = [
+const STORAGE_KEY = 'buildmind-procurement-data-v1';
+
+const defaultMaterials = [
   {
     name: 'Труба 76', unit: 'м', need: 5800, stock: 0, reserved: 3000,
     confirmed: 3000, deliveryDate: '2026-07-10', leadDays: 1
@@ -12,6 +14,31 @@ const materials = [
     confirmed: 2500, deliveryDate: '2026-07-10', leadDays: 1
   }
 ];
+
+let materials = loadMaterials();
+
+function loadMaterials() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+
+  if (!saved) {
+    return [...defaultMaterials];
+  }
+
+  try {
+    const parsed = JSON.parse(saved);
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+  } catch (error) {
+    console.warn('Не удалось прочитать сохранённые данные BuildMind:', error);
+  }
+
+  return [...defaultMaterials];
+}
+
+function saveMaterials() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(materials));
+}
 
 function parseDate(value) {
   const date = new Date(value + 'T00:00:00');
@@ -48,7 +75,7 @@ function riskFor(row, needDate, today) {
     return {
       level: 'critical',
       text: 'Критический',
-      action: `Поставка позже даты потребности. Ускорить поставку или найти резервного поставщика.`
+      action: 'Поставка позже даты потребности. Ускорить поставку или найти резервного поставщика.'
     };
   }
 
@@ -80,7 +107,7 @@ function render() {
   let warning = 0;
   let ok = 0;
 
-  materials.forEach((row) => {
+  materials.forEach((row, index) => {
     const free = Math.max(row.stock - row.reserved, 0);
     const available = free + row.confirmed;
     const deficit = Math.max(row.need - available, 0);
@@ -107,6 +134,7 @@ function render() {
       <td>${formatDate(orderDeadline)}</td>
       <td><span class="badge ${risk.level}">${risk.text}</span></td>
       <td>${risk.action}</td>
+      <td><button class="small-btn" onclick="deleteMaterial(${index})">Удалить</button></td>
     `;
     tbody.appendChild(tr);
   });
@@ -137,6 +165,34 @@ function addMaterial() {
     leadDays: Number(document.getElementById('newLead').value || 1)
   });
 
+  saveMaterials();
+  clearAddForm();
+  render();
+}
+
+function deleteMaterial(index) {
+  materials.splice(index, 1);
+  saveMaterials();
+  render();
+}
+
+function clearAddForm() {
+  document.getElementById('newName').value = '';
+  document.getElementById('newNeed').value = '';
+  document.getElementById('newUnit').value = '';
+  document.getElementById('newStock').value = '0';
+  document.getElementById('newReserved').value = '0';
+  document.getElementById('newConfirmed').value = '0';
+  document.getElementById('newDelivery').value = '';
+  document.getElementById('newLead').value = '1';
+}
+
+function resetMaterials() {
+  const confirmed = confirm('Сбросить материалы к стартовому примеру? Все добавленные материалы будут удалены.');
+  if (!confirmed) return;
+
+  materials = [...defaultMaterials];
+  saveMaterials();
   render();
 }
 
@@ -162,4 +218,5 @@ function exportJson() {
 document.getElementById('recalcBtn').addEventListener('click', render);
 document.getElementById('addBtn').addEventListener('click', addMaterial);
 document.getElementById('exportBtn').addEventListener('click', exportJson);
+document.getElementById('resetBtn').addEventListener('click', resetMaterials);
 render();
