@@ -2,15 +2,15 @@ const STORAGE_KEY = 'buildmind-procurement-data-v1';
 
 const defaultMaterials = [
   {
-    name: 'Труба 76', unit: 'м', need: 5800, stock: 0, reserved: 3000,
+    name: 'Труба 76', responsible: 'Снабженец', unit: 'м', need: 5800, stock: 0, reserved: 3000,
     confirmed: 3000, deliveryDate: '2026-07-10', leadDays: 1
   },
   {
-    name: 'Уголок', unit: 'шт', need: 2000, stock: 0, reserved: 1500,
+    name: 'Уголок', responsible: 'Прораб', unit: 'шт', need: 2000, stock: 0, reserved: 1500,
     confirmed: 1500, deliveryDate: '2026-07-11', leadDays: 2
   },
   {
-    name: 'Хомуты', unit: 'шт', need: 4500, stock: 0, reserved: 2500,
+    name: 'Хомуты', responsible: 'Кладовщик', unit: 'шт', need: 4500, stock: 0, reserved: 2500,
     confirmed: 2500, deliveryDate: '2026-07-10', leadDays: 1
   }
 ];
@@ -121,6 +121,7 @@ function render() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${row.name}</td>
+      <td>${row.responsible || '—'}</td>
       <td>${row.need}</td>
       <td>${row.unit}</td>
       <td>${row.stock}</td>
@@ -146,6 +147,7 @@ function render() {
 
 function addMaterial() {
   const name = document.getElementById('newName').value.trim();
+  const responsible = document.getElementById('newResponsible').value.trim() || 'Не назначен';
   const need = Number(document.getElementById('newNeed').value);
   const unit = document.getElementById('newUnit').value.trim() || 'шт';
 
@@ -156,6 +158,7 @@ function addMaterial() {
 
   materials.push({
     name,
+    responsible,
     unit,
     need,
     stock: Number(document.getElementById('newStock').value || 0),
@@ -178,6 +181,7 @@ function deleteMaterial(index) {
 
 function clearAddForm() {
   document.getElementById('newName').value = '';
+  document.getElementById('newResponsible').value = '';
   document.getElementById('newNeed').value = '';
   document.getElementById('newUnit').value = '';
   document.getElementById('newStock').value = '0';
