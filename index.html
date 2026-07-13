@@ -67,12 +67,29 @@
     <section class="card">
       <h2>Добавить материал</h2>
       <div class="grid add-grid">
-        <label>Материал<input id="newName" placeholder="Кабель" /></label>
-        <label>Ответственный<input id="newResponsible" placeholder="Снабженец" /></label>
-        <label>Нужно<input id="newNeed" type="number" placeholder="1000" /></label>
-        <label>Ед.<input id="newUnit" placeholder="м" /></label>
-        <label>Общий остаток<input id="newStock" type="number" value="0" /></label>
-        <label>Резерв<input id="newReserved" type="number" value="0" /></label>
+        <label>Материал<input id="newName" /></label>
+        <label>Ответственный<input id="newResponsible" /></label>
+        <label>Нужно<input id="newNeed" type="number" /></label>
+        <label>Ед.
+          <select id="newUnit">
+    <option value="шт">шт — штуки</option>
+    <option value="м">м — метры</option>
+    <option value="п.м.">п.м. — погонные метры</option>
+    <option value="м²">м² — квадратные метры</option>
+    <option value="м³">м³ — кубические метры</option>
+    <option value="т">т — тонны</option>
+    <option value="кг">кг — килограммы</option>
+    <option value="л">л — литры</option>
+    <option value="компл.">компл. — комплекты</option>
+    <option value="рул.">рул. — рулоны</option>
+    <option value="меш.">меш. — мешки</option>
+    <option value="упак.">упак. — упаковки</option>
+    <option value="кор.">кор. — коробки</option>
+  </select>
+</label>
+
+        <label>Общий остаток<input id="newStock" type="number" /></label>
+        <label>Резерв<input id="newReserved" type="number" /></label>
         <label>Подтверждено поставщиком<input id="newConfirmed" type="number" value="0" /></label>
         <label>Дата поставки<input id="newDelivery" type="date" /></label>
         <label>Срок поставки, дней<input id="newLead" type="number" value="1" /></label>
