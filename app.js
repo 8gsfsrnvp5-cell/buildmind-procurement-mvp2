@@ -358,4 +358,4 @@ function clearBuildMindAssistant() {
 
 window.runBuildMindAssistant = runBuildMindAssistant;
 window.clearBuildMindAssistant = clearBuildMindAssistant;
-Fix BuildMind assistant functions
+
