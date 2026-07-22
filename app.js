@@ -224,3 +224,151 @@ document.getElementById('addBtn').addEventListener('click', addMaterial);
 document.getElementById('exportBtn').addEventListener('click', exportJson);
 document.getElementById('resetBtn').addEventListener('click', resetMaterials);
 render();
+function calculateAssistantRow(material) {
+  const need = Number(material.need) || 0;
+  const stock = Number(material.stock) || 0;
+  const reserved = Number(material.reserved) || 0;
+  const confirmed = Number(material.confirmed) || 0;
+
+  const free = Math.max(0, stock - reserved);
+  const available = free + confirmed;
+  const deficit = Math.max(0, need - available);
+
+  return {
+    ...material,
+    need,
+    stock,
+    reserved,
+    confirmed,
+    free,
+    available,
+    deficit
+  };
+}
+
+function runBuildMindAssistant() {
+  const input = document.getElementById('assistantInput');
+  const answer = document.getElementById('assistantAnswer');
+
+  if (!input || !answer) {
+    return;
+  }
+
+  const command = input.value.trim().toLowerCase();
+
+  if (!command) {
+    answer.textContent = 'Введите команду для BuildMind.';
+    return;
+  }
+
+  const calculatedMaterials = materials.map(calculateAssistantRow);
+
+  if (
+    command.includes('дефицит') ||
+    command.includes('не хватает') ||
+    command.includes('риск')
+  ) {
+    const deficitMaterials = calculatedMaterials.filter(item => item.deficit > 0);
+
+    if (deficitMaterials.length === 0) {
+      answer.textContent = 'Материалов с дефицитом не найдено.';
+      return;
+    }
+
+    const lines = deficitMaterials.map(item => {
+      return `- ${item.name}: дефицит ${item.deficit} ${item.unit}, ответственный: ${item.responsible || 'не назначен'}`;
+    });
+
+    answer.textContent =
+      'Материалы с дефицитом:\n\n' +
+      lines.join('\n');
+
+    return;
+  }
+
+  if (
+    command.includes('все материалы') ||
+    command.includes('покажи материалы') ||
+    command.includes('список материалов')
+  ) {
+    const lines = calculatedMaterials.map(item => {
+      return `- ${item.name}: нужно ${item.need} ${item.unit}, доступно ${item.available} ${item.unit}, дефицит ${item.deficit} ${item.unit}`;
+    });
+
+    answer.textContent =
+      'Список материалов:\n\n' +
+      lines.join('\n');
+
+    return;
+  }
+
+  if (
+    command.includes('ответственный') ||
+    command.includes('кто отвечает') ||
+    command.includes('ответственные')
+  ) {
+    const lines = calculatedMaterials.map(item => {
+      return `- ${item.name}: ${item.responsible || 'ответственный не назначен'}`;
+    });
+
+    answer.textContent =
+      'Ответственные по материалам:\n\n' +
+      lines.join('\n');
+
+    return;
+  }
+
+  if (
+    command.includes('помощь') ||
+    command.includes('что умеешь') ||
+    command.includes('команды')
+  ) {
+    answer.textContent =
+      'Я пока понимаю простые команды:\n\n' +
+      '1. Покажи материалы с дефицитом\n' +
+      '2. Покажи все материалы\n' +
+      '3. Кто ответственный\n' +
+      '4. Помощь\n\n' +
+      'Позже я буду понимать проекты, объекты, работы и периоды.';
+    return;
+  }
+
+  answer.textContent =
+    'Я пока не понял команду.\n\n' +
+    'Попробуйте написать:\n' +
+    '- Покажи материалы с дефицитом\n' +
+    '- Покажи все материалы\n' +
+    '- Кто ответственный\n' +
+    '- Помощь';
+}
+
+const askAssistantBtn = document.getElementById('askAssistantBtn');
+const clearAssistantBtn = document.getElementById('clearAssistantBtn');
+const assistantInput = document.getElementById('assistantInput');
+
+if (askAssistantBtn) {
+  askAssistantBtn.addEventListener('click', runBuildMindAssistant);
+}
+
+if (clearAssistantBtn) {
+  clearAssistantBtn.addEventListener('click', function () {
+    const answer = document.getElementById('assistantAnswer');
+    const input = document.getElementById('assistantInput');
+
+    if (answer) {
+      answer.textContent = 'Здесь появится ответ BuildMind.';
+    }
+
+    if (input) {
+      input.value = '';
+    }
+  });
+}
+
+if (assistantInput) {
+  assistantInput.addEventListener('keydown', function (event) {
+    if (event.ctrlKey && event.key === 'Enter') {
+      runBuildMindAssistant();
+    }
+  });
+}
