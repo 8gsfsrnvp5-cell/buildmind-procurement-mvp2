@@ -251,6 +251,7 @@ function runBuildMindAssistant() {
   const answer = document.getElementById('assistantAnswer');
 
   if (!input || !answer) {
+    alert('Командное окно не найдено на странице.');
     return;
   }
 
@@ -341,38 +342,20 @@ function runBuildMindAssistant() {
     '- Кто ответственный\n' +
     '- Помощь';
 }
-function initBuildMindAssistant() {
-  const askAssistantBtn = document.getElementById('askAssistantBtn');
-  const clearAssistantBtn = document.getElementById('clearAssistantBtn');
-  const assistantInput = document.getElementById('assistantInput');
 
-  if (askAssistantBtn) {
-    askAssistantBtn.onclick = runBuildMindAssistant;
+function clearBuildMindAssistant() {
+  const answer = document.getElementById('assistantAnswer');
+  const input = document.getElementById('assistantInput');
+
+  if (answer) {
+    answer.textContent = 'Здесь появится ответ BuildMind.';
   }
 
-  if (clearAssistantBtn) {
-    clearAssistantBtn.onclick = function () {
-      const answer = document.getElementById('assistantAnswer');
-      const input = document.getElementById('assistantInput');
-
-      if (answer) {
-        answer.textContent = 'Здесь появится ответ BuildMind.';
-      }
-
-      if (input) {
-        input.value = '';
-      }
-    };
-  }
-
-  if (assistantInput) {
-    assistantInput.onkeydown = function (event) {
-      if (event.ctrlKey && event.key === 'Enter') {
-        runBuildMindAssistant();
-      }
-    };
+  if (input) {
+    input.value = '';
   }
 }
 
-initBuildMindAssistant();
-
+window.runBuildMindAssistant = runBuildMindAssistant;
+window.clearBuildMindAssistant = clearBuildMindAssistant;
+Fix BuildMind assistant functions
