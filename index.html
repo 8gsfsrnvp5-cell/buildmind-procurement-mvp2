@@ -47,8 +47,13 @@
   ></textarea>
 
   <div class="assistant-actions">
-    <button id="askAssistantBtn">Спросить BuildMind</button>
-    <button id="clearAssistantBtn" class="secondary-btn">Очистить ответ</button>
+   <button type="button" id="askAssistantBtn" onclick="runBuildMindAssistant()">
+  Спросить BuildMind
+</button>
+
+<button type="button" id="clearAssistantBtn" class="secondary-btn" onclick="clearBuildMindAssistant()">
+  Очистить ответ
+</button>
   </div>
 
   <div id="assistantAnswer" class="assistant-answer">
@@ -122,3 +127,4 @@
   <script src="app.js"></script>
 </body>
 </html>
+Fix assistant buttons HTML
