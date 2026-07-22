@@ -34,7 +34,27 @@
       <div><strong id="warningCount">0</strong><span>предупреждений</span></div>
       <div><strong id="okCount">0</strong><span>обеспечено</span></div>
     </section>
+<section class="card assistant-card">
+  <h2>Командное окно BuildMind</h2>
+  <p class="muted">
+    Напишите команду простым языком. Например: “Покажи материалы с дефицитом”.
+  </p>
 
+  <textarea
+    id="assistantInput"
+    rows="4"
+    placeholder="Например: покажи материалы с дефицитом"
+  ></textarea>
+
+  <div class="assistant-actions">
+    <button id="askAssistantBtn">Спросить BuildMind</button>
+    <button id="clearAssistantBtn" class="secondary-btn">Очистить ответ</button>
+  </div>
+
+  <div id="assistantAnswer" class="assistant-answer">
+    Здесь появится ответ BuildMind.
+  </div>
+</section>
     <section class="card">
       <h2>Материалы</h2>
       <div class="table-wrap">
