@@ -341,34 +341,38 @@ function runBuildMindAssistant() {
     '- Кто ответственный\n' +
     '- Помощь';
 }
+function initBuildMindAssistant() {
+  const askAssistantBtn = document.getElementById('askAssistantBtn');
+  const clearAssistantBtn = document.getElementById('clearAssistantBtn');
+  const assistantInput = document.getElementById('assistantInput');
 
-const askAssistantBtn = document.getElementById('askAssistantBtn');
-const clearAssistantBtn = document.getElementById('clearAssistantBtn');
-const assistantInput = document.getElementById('assistantInput');
+  if (askAssistantBtn) {
+    askAssistantBtn.onclick = runBuildMindAssistant;
+  }
 
-if (askAssistantBtn) {
-  askAssistantBtn.addEventListener('click', runBuildMindAssistant);
+  if (clearAssistantBtn) {
+    clearAssistantBtn.onclick = function () {
+      const answer = document.getElementById('assistantAnswer');
+      const input = document.getElementById('assistantInput');
+
+      if (answer) {
+        answer.textContent = 'Здесь появится ответ BuildMind.';
+      }
+
+      if (input) {
+        input.value = '';
+      }
+    };
+  }
+
+  if (assistantInput) {
+    assistantInput.onkeydown = function (event) {
+      if (event.ctrlKey && event.key === 'Enter') {
+        runBuildMindAssistant();
+      }
+    };
+  }
 }
 
-if (clearAssistantBtn) {
-  clearAssistantBtn.addEventListener('click', function () {
-    const answer = document.getElementById('assistantAnswer');
-    const input = document.getElementById('assistantInput');
+initBuildMindAssistant();
 
-    if (answer) {
-      answer.textContent = 'Здесь появится ответ BuildMind.';
-    }
-
-    if (input) {
-      input.value = '';
-    }
-  });
-}
-
-if (assistantInput) {
-  assistantInput.addEventListener('keydown', function (event) {
-    if (event.ctrlKey && event.key === 'Enter') {
-      runBuildMindAssistant();
-    }
-  });
-}
