@@ -203,7 +203,29 @@
         });
 
         let summaryText = 'Сводка BuildMind:\n\n';
-      if (
+  
+        summaryText += `Всего материалов: ${totalMaterials}\n`;
+        summaryText += `Материалов с дефицитом: ${deficitMaterials.length}\n`;
+        summaryText += `Материалов без ответственного: ${withoutResponsible.length}\n`;
+
+        if (biggestDeficit) {
+          summaryText += `Самый большой дефицит: ${biggestDeficit.name} — ${biggestDeficit.deficit} ${biggestDeficit.unit}\n`;
+        } else {
+          summaryText += 'Самый большой дефицит: не найден\n';
+        }
+
+        summaryText += '\nКраткий вывод:\n';
+
+        if (deficitMaterials.length > 0) {
+          summaryText += 'Есть материалы с дефицитом. Нужно проверить закупки и ответственных.';
+        } else {
+          summaryText += 'По текущим данным дефицита материалов нет.';
+        }
+
+        answer.textContent = summaryText;
+        return;
+      }
+            if (
         command.includes('проект') ||
         command.includes('объект') ||
         command.includes('работа')
@@ -240,27 +262,6 @@
           'Материалы по найденному проекту / объекту / работе:\n\n' +
           lines.join('\n');
 
-        return;
-      }
-        summaryText += `Всего материалов: ${totalMaterials}\n`;
-        summaryText += `Материалов с дефицитом: ${deficitMaterials.length}\n`;
-        summaryText += `Материалов без ответственного: ${withoutResponsible.length}\n`;
-
-        if (biggestDeficit) {
-          summaryText += `Самый большой дефицит: ${biggestDeficit.name} — ${biggestDeficit.deficit} ${biggestDeficit.unit}\n`;
-        } else {
-          summaryText += 'Самый большой дефицит: не найден\n';
-        }
-
-        summaryText += '\nКраткий вывод:\n';
-
-        if (deficitMaterials.length > 0) {
-          summaryText += 'Есть материалы с дефицитом. Нужно проверить закупки и ответственных.';
-        } else {
-          summaryText += 'По текущим данным дефицита материалов нет.';
-        }
-
-        answer.textContent = summaryText;
         return;
       }
       if (
