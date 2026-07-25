@@ -203,7 +203,45 @@
         });
 
         let summaryText = 'Сводка BuildMind:\n\n';
+      if (
+        command.includes('проект') ||
+        command.includes('объект') ||
+        command.includes('работа')
+      ) {
+        const contextMaterials = calculatedMaterials.filter(function (item) {
+          const project = (item.project || '').toLowerCase();
+          const object = (item.object || '').toLowerCase();
+          const work = (item.work || '').toLowerCase();
 
+          return (
+            project && command.includes(project)
+          ) || (
+            object && command.includes(object)
+          ) || (
+            work && command.includes(work)
+          );
+        });
+
+        if (contextMaterials.length === 0) {
+          answer.textContent =
+            'Я не нашёл материалы по указанному проекту, объекту или работе.\n\n' +
+            'Попробуйте написать точное название, например:\n' +
+            '- Покажи объект СВХ\n' +
+            '- Покажи проект АСУДД 1\n' +
+            '- Покажи работу Кабельная канализация на эстакаде В4';
+          return;
+        }
+
+        const lines = contextMaterials.map(function (item) {
+          return `- ${item.project || '—'} / ${item.object || '—'} / ${item.work || '—'} / ${item.name}: нужно ${item.need} ${item.unit}, доступно ${item.available} ${item.unit}, дефицит ${item.deficit} ${item.unit}`;
+        });
+
+        answer.textContent =
+          'Материалы по найденному проекту / объекту / работе:\n\n' +
+          lines.join('\n');
+
+        return;
+      }
         summaryText += `Всего материалов: ${totalMaterials}\n`;
         summaryText += `Материалов с дефицитом: ${deficitMaterials.length}\n`;
         summaryText += `Материалов без ответственного: ${withoutResponsible.length}\n`;
@@ -238,7 +276,7 @@
         }
 
         const lines = deficitMaterials.map(item => {
-          return `- ${item.name}: дефицит ${item.deficit} ${item.unit}, ответственный: ${item.responsible || 'не назначен'}`;
+          return `- ${item.project || '—'} / ${item.object || '—'} / ${item.work || '—'} / ${item.name}: дефицит ${item.deficit} ${item.unit}, ответственный: ${item.responsible || 'не назначен'}`;
         });
 
         answer.textContent = 'Материалы с дефицитом:\n\n' + lines.join('\n');
@@ -251,7 +289,7 @@
         command.includes('список материалов')
       ) {
         const lines = calculatedMaterials.map(item => {
-          return `- ${item.name}: нужно ${item.need} ${item.unit}, доступно ${item.available} ${item.unit}, дефицит ${item.deficit} ${item.unit}`;
+          return `- ${item.project || '—'} / ${item.object || '—'} / ${item.work || '—'} / ${item.name}: нужно ${item.need} ${item.unit}, доступно ${item.available} ${item.unit}, дефицит ${item.deficit} ${item.unit}`;
         });
 
         answer.textContent = 'Список материалов:\n\n' + lines.join('\n');
@@ -264,7 +302,7 @@
         command.includes('ответственные')
       ) {
         const lines = calculatedMaterials.map(item => {
-          return `- ${item.name}: ${item.responsible || 'ответственный не назначен'}`;
+          return `- ${item.project || '—'} / ${item.object || '—'} / ${item.work || '—'} / ${item.name}: ${item.responsible || 'ответственный не назначен'}`;
         });
 
         answer.textContent = 'Ответственные по материалам:\n\n' + lines.join('\n');
