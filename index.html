@@ -170,7 +170,53 @@
       }
 
       const calculatedMaterials = materials.map(calculateAssistantRowLocal);
+      if (
+        command.includes('сводка') ||
+        command.includes('сводку') ||
+        command.includes('итог') ||
+        command.includes('общая информация')
+      ) {
+        const totalMaterials = calculatedMaterials.length;
 
+        const deficitMaterials = calculatedMaterials.filter(function (item) {
+          return item.deficit > 0;
+        });
+
+        const withoutResponsible = calculatedMaterials.filter(function (item) {
+          return !item.responsible || item.responsible === 'Не назначен';
+        });
+
+        let biggestDeficit = null;
+
+        deficitMaterials.forEach(function (item) {
+          if (!biggestDeficit || item.deficit > biggestDeficit.deficit) {
+            biggestDeficit = item;
+          }
+        });
+
+        let summaryText = 'Сводка BuildMind:\n\n';
+
+        summaryText += `Всего материалов: ${totalMaterials}\n`;
+        summaryText += `Материалов с дефицитом: ${deficitMaterials.length}\n`;
+        summaryText += `Материалов без ответственного: ${withoutResponsible.length}\n`;
+
+        if (biggestDeficit) {
+          summaryText += `Самый большой дефицит: ${biggestDeficit.name} — ${biggestDeficit.deficit} ${biggestDeficit.unit}\n`;
+        } else {
+          summaryText += 'Самый большой дефицит: не найден\n';
+        }
+
+        summaryText += '\nКраткий вывод:\n';
+
+        if (deficitMaterials.length > 0) {
+          summaryText += 'Есть материалы с дефицитом. Нужно проверить закупки и ответственных.';
+        } else {
+          summaryText += 'По текущим данным дефицита материалов нет.';
+        }
+
+        answer.textContent = summaryText;
+        return;
+      }
       if (
         command.includes('дефицит') ||
         command.includes('не хватает') ||
