@@ -104,44 +104,88 @@
     <p><strong>Страховой запас:</strong> <span id="currentSafetyDays">2 дня</span></p>
   </div>
 
-  <div class="card work-contexts-card">
-    <h2>Контексты работ</h2>
-    <p class="muted">
-      Выберите проект / объект / работу. После выбора форма добавления материала заполнится автоматически.
-    </p>
+ <div class="card work-contexts-card">
+  <h2>Контексты работ</h2>
 
-    <button
-      type="button"
-      class="context-item"
-      onclick="selectWorkContext('АСУДД 1', 'СВХ', 'Кабельная канализация на эстакаде ДВ-4', '2026-07-30', '2')"
-    >
-      АСУДД 1 / СВХ / Кабельная канализация на эстакаде ДВ-4
-    </button>
+  <p class="muted">
+    Выберите проект, объект и работу. После выбора форма материала заполнится автоматически.
+  </p>
 
-    <button
-      type="button"
-      class="context-item"
-      onclick="selectWorkContext('АСУДД 1', 'ЮВХ', 'Кабельная канализация на эстакаде В3', '2026-08-05', '2')"
-    >
-      АСУДД 1 / ЮВХ / Кабельная канализация на эстакаде В3
-    </button>
+  <div id="contextsList" class="contexts-list"></div>
 
-    <button
-      type="button"
-      class="context-item"
-      onclick="selectWorkContext('АСУДД 1', 'СВХ', 'Монтаж кабеля', '2026-08-12', '3')"
-    >
-      АСУДД 1 / СВХ / Монтаж кабеля
-    </button>
+  <button
+    type="button"
+    class="add-context-btn"
+    onclick="openContextForm()"
+  >
+    + Добавить контекст
+  </button>
+
+  <div id="contextForm" class="context-form hidden">
+    <h3>Новый контекст работы</h3>
+
+    <label>
+      Проект
+      <input id="contextProject" />
+    </label>
+
+    <label>
+      Объект
+      <input id="contextObject" />
+    </label>
+
+    <label>
+      Работа
+      <input id="contextWork" />
+    </label>
+
+    <label>
+      Дата начала работы
+      <input id="contextStartDate" type="date" />
+    </label>
+
+    <label>
+      Страховой запас, дней
+      <input
+        id="contextSafetyDays"
+        type="number"
+        min="0"
+        value="2"
+      />
+    </label>
+
+    <div class="context-form-actions">
+      <button type="button" onclick="addWorkContext()">
+        Сохранить контекст
+      </button>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        onclick="closeContextForm()"
+      >
+        Отмена
+      </button>
+    </div>
   </div>
+</div>
 </section>
       <h2>Добавить материал</h2>
       <div class="grid add-grid">
-        <label>Проект<input id="newProject" /></label>
+       <label>
+  Проект
+  <input id="newProject" readonly />
+</label>
 
-        <label>Объект<input id="newObject" /></label>
+<label>
+  Объект
+  <input id="newObject" readonly />
+</label>
 
-        <label>Работа<input id="newWork" /></label>
+<label>
+  Работа
+  <input id="newWork" readonly />
+</label>
         <label>Материал<input id="newName" /></label>
         <label>Ответственный<input id="newResponsible" /></label>
         <label>Нужно<input id="newNeed" type="number" /></label>
