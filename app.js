@@ -189,9 +189,6 @@ function deleteMaterial(index) {
 }
 
 function clearAddForm() {
-  document.getElementById('newProject').value = '';
-  document.getElementById('newObject').value = '';
-  document.getElementById('newWork').value = '';
   document.getElementById('newName').value = '';
   document.getElementById('newResponsible').value = '';
   document.getElementById('newNeed').value = '';
