@@ -93,6 +93,48 @@
     </section>
 
     <section class="card">
+      <section class="context-layout">
+  <div class="card current-context-card">
+    <h2>Текущий контекст контроля</h2>
+
+    <p><strong>Проект:</strong> <span id="currentProject">АСУДД 1</span></p>
+    <p><strong>Объект:</strong> <span id="currentObject">СВХ</span></p>
+    <p><strong>Работа:</strong> <span id="currentWork">Кабельная канализация на эстакаде ДВ-4</span></p>
+    <p><strong>Дата начала работы:</strong> <span id="currentStartDate">2026-07-30</span></p>
+    <p><strong>Страховой запас:</strong> <span id="currentSafetyDays">2 дня</span></p>
+  </div>
+
+  <div class="card work-contexts-card">
+    <h2>Контексты работ</h2>
+    <p class="muted">
+      Выберите проект / объект / работу. После выбора форма добавления материала заполнится автоматически.
+    </p>
+
+    <button
+      type="button"
+      class="context-item"
+      onclick="selectWorkContext('АСУДД 1', 'СВХ', 'Кабельная канализация на эстакаде ДВ-4', '2026-07-30', '2')"
+    >
+      АСУДД 1 / СВХ / Кабельная канализация на эстакаде ДВ-4
+    </button>
+
+    <button
+      type="button"
+      class="context-item"
+      onclick="selectWorkContext('АСУДД 1', 'ЮВХ', 'Кабельная канализация на эстакаде В3', '2026-08-05', '2')"
+    >
+      АСУДД 1 / ЮВХ / Кабельная канализация на эстакаде В3
+    </button>
+
+    <button
+      type="button"
+      class="context-item"
+      onclick="selectWorkContext('АСУДД 1', 'СВХ', 'Монтаж кабеля', '2026-08-12', '3')"
+    >
+      АСУДД 1 / СВХ / Монтаж кабеля
+    </button>
+  </div>
+</section>
       <h2>Добавить материал</h2>
       <div class="grid add-grid">
         <label>Проект<input id="newProject" /></label>
@@ -344,6 +386,49 @@
 
       if (input) {
         input.value = '';
+      }
+    }
+        function selectWorkContext(project, object, work, startDate, safetyDays) {
+      const currentProject = document.getElementById('currentProject');
+      const currentObject = document.getElementById('currentObject');
+      const currentWork = document.getElementById('currentWork');
+      const currentStartDate = document.getElementById('currentStartDate');
+      const currentSafetyDays = document.getElementById('currentSafetyDays');
+
+      if (currentProject) {
+        currentProject.textContent = project;
+      }
+
+      if (currentObject) {
+        currentObject.textContent = object;
+      }
+
+      if (currentWork) {
+        currentWork.textContent = work;
+      }
+
+      if (currentStartDate) {
+        currentStartDate.textContent = startDate;
+      }
+
+      if (currentSafetyDays) {
+        currentSafetyDays.textContent = safetyDays + ' дня';
+      }
+
+      const newProject = document.getElementById('newProject');
+      const newObject = document.getElementById('newObject');
+      const newWork = document.getElementById('newWork');
+
+      if (newProject) {
+        newProject.value = project;
+      }
+
+      if (newObject) {
+        newObject.value = object;
+      }
+
+      if (newWork) {
+        newWork.value = work;
       }
     }
   </script>
