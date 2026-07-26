@@ -178,3 +178,91 @@ th { background: #f8fafc; color: #334155; white-space: nowrap; }
     grid-template-columns: 1fr;
   }
 }
+.contexts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.context-row {
+  display: grid;
+  grid-template-columns: 1fr 42px;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.context-row.active .context-select {
+  border-color: #344054;
+  background: #f2f4f7;
+  font-weight: 600;
+}
+
+.context-select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.context-select:hover {
+  background: #f9fafb;
+}
+
+.context-delete {
+  border: 1px solid #fda29b;
+  border-radius: 10px;
+  background: #fff5f4;
+  color: #b42318;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.context-delete:hover {
+  background: #fee4e2;
+}
+
+.add-context-btn {
+  margin-top: 12px;
+  width: 100%;
+}
+
+.context-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #eaecf0;
+}
+
+.context-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.context-form input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.context-form-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hidden {
+  display: none;
+}
+
+.empty-contexts {
+  padding: 12px;
+  border: 1px dashed #d0d5dd;
+  border-radius: 10px;
+  color: #667085;
+}
