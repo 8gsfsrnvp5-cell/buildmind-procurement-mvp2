@@ -266,3 +266,67 @@ th { background: #f8fafc; color: #334155; white-space: nowrap; }
   border-radius: 10px;
   color: #667085;
 }
+.project-workspace {
+  display: grid;
+  gap: 20px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(360px, 1.2fr);
+  gap: 20px;
+}
+
+.project-selector-card,
+.current-context-card {
+  min-width: 0;
+}
+
+.project-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.project-filters label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.project-filters select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.project-filters select:disabled {
+  background: #f2f4f7;
+  color: #667085;
+}
+
+.analysis-date {
+  margin-top: 18px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.current-context-card p {
+  margin: 8px 0;
+}
+
+@media (max-width: 900px) {
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-filters {
+    grid-template-columns: 1fr;
+  }
+}
