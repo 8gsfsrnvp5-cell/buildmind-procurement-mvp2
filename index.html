@@ -438,49 +438,80 @@
         input.value = '';
       }
     }
-        function selectWorkContext(project, object, work, startDate, safetyDays) {
-      const currentProject = document.getElementById('currentProject');
-      const currentObject = document.getElementById('currentObject');
-      const currentWork = document.getElementById('currentWork');
-      const currentStartDate = document.getElementById('currentStartDate');
-      const currentSafetyDays = document.getElementById('currentSafetyDays');
+       function selectWorkContext(
+  project,
+  object,
+  work,
+  startDate,
+  endDate,
+  safetyDays
+) {
+  const currentProject =
+    document.getElementById('currentProject');
 
-      if (currentProject) {
-        currentProject.textContent = project;
-      }
+  const currentObject =
+    document.getElementById('currentObject');
 
-      if (currentObject) {
-        currentObject.textContent = object;
-      }
+  const currentWork =
+    document.getElementById('currentWork');
 
-      if (currentWork) {
-        currentWork.textContent = work;
-      }
+  const currentStartDate =
+    document.getElementById('currentStartDate');
 
-      if (currentStartDate) {
-        currentStartDate.textContent = startDate;
-      }
+  const currentEndDate =
+    document.getElementById('currentEndDate');
 
-      if (currentSafetyDays) {
-        currentSafetyDays.textContent = safetyDays + ' дня';
-      }
+  const currentSafetyDays =
+    document.getElementById('currentSafetyDays');
 
-      const newProject = document.getElementById('newProject');
-      const newObject = document.getElementById('newObject');
-      const newWork = document.getElementById('newWork');
+  if (currentProject) {
+    currentProject.textContent = project || '—';
+  }
 
-      if (newProject) {
-        newProject.value = project;
-      }
+  if (currentObject) {
+    currentObject.textContent = object || '—';
+  }
 
-      if (newObject) {
-        newObject.value = object;
-      }
+  if (currentWork) {
+    currentWork.textContent = work || '—';
+  }
 
-      if (newWork) {
-        newWork.value = work;
-      }
-    }
+  if (currentStartDate) {
+    currentStartDate.textContent = startDate || '—';
+  }
+
+  if (currentEndDate) {
+    currentEndDate.textContent = endDate || '—';
+  }
+
+  if (currentSafetyDays) {
+    currentSafetyDays.textContent =
+      Number.isFinite(Number(safetyDays))
+        ? safetyDays + ' дня'
+        : '—';
+  }
+
+  const newProject =
+    document.getElementById('newProject');
+
+  const newObject =
+    document.getElementById('newObject');
+
+  const newWork =
+    document.getElementById('newWork');
+
+  if (newProject) {
+    newProject.value = project || '';
+  }
+
+  if (newObject) {
+    newObject.value = object || '';
+  }
+
+  if (newWork) {
+    newWork.value = work || '';
+  }
+}
         const defaultWorkContexts = [
       {
         id: 'context-1',
@@ -622,13 +653,14 @@
         activeContextId
       );
 
-      selectWorkContext(
-        selectedContext.project,
-        selectedContext.object,
-        selectedContext.work,
-        selectedContext.startDate,
-        selectedContext.safetyDays
-      );
+     selectWorkContext(
+  selectedContext.project,
+  selectedContext.object,
+  selectedContext.work,
+  selectedContext.startDate,
+  selectedContext.endDate,
+  selectedContext.safetyDays
+);
 
       renderWorkContexts();
     }
