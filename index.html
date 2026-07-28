@@ -580,35 +580,37 @@
   if (newWork) {
     newWork.value = work || '';
   }
+
+  const technicalWorkName =
+    document.getElementById('workName');
+
+  const technicalWorkStartDate =
+    document.getElementById('workStartDate');
+
+  const technicalSafetyDays =
+    document.getElementById('safetyDays');
+
+  if (technicalWorkName) {
+    technicalWorkName.value = work || '';
+  }
+
+  if (technicalWorkStartDate) {
+    technicalWorkStartDate.value = startDate || '';
+  }
+
+  if (technicalSafetyDays) {
+    technicalSafetyDays.value =
+      Number.isFinite(Number(safetyDays))
+        ? String(safetyDays)
+        : '0';
+  }
+
+  if (typeof render === 'function') {
+    render();
+  }
 }
-    const technicalWorkName =
-  document.getElementById('workName');
 
-const technicalWorkStartDate =
-  document.getElementById('workStartDate');
-
-const technicalSafetyDays =
-  document.getElementById('safetyDays');
-
-if (technicalWorkName) {
-  technicalWorkName.value = work || '';
-}
-
-if (technicalWorkStartDate) {
-  technicalWorkStartDate.value = startDate || '';
-}
-
-if (technicalSafetyDays) {
-  technicalSafetyDays.value =
-    Number.isFinite(Number(safetyDays))
-      ? String(safetyDays)
-      : '0';
-}
-
-if (typeof render === 'function') {
-  render();
-}
-       const defaultWorkContexts = [
+const defaultWorkContexts = [
   {
     id: 'context-1',
     project: 'АСУДД 1',
