@@ -780,73 +780,95 @@ saveWorkContexts();
       document.getElementById('contextObject').value = '';
       document.getElementById('contextWork').value = '';
       document.getElementById('contextStartDate').value = '';
+      document.getElementById('contextEndDate').value = '';
       document.getElementById('contextSafetyDays').value = '2';
     }
 
-    function addWorkContext() {
-      const project =
-        document.getElementById('contextProject').value.trim();
+ function addWorkContext() {
+  const project =
+    document.getElementById('contextProject').value.trim();
 
-      const object =
-        document.getElementById('contextObject').value.trim();
+  const object =
+    document.getElementById('contextObject').value.trim();
 
-      const work =
-        document.getElementById('contextWork').value.trim();
+  const work =
+    document.getElementById('contextWork').value.trim();
 
-      const startDate =
-        document.getElementById('contextStartDate').value;
+  const startDate =
+    document.getElementById('contextStartDate').value;
 
-      const safetyDays = Number(
-        document.getElementById('contextSafetyDays').value
+  const endDate =
+    document.getElementById('contextEndDate').value;
+
+  const safetyDays = Number(
+    document.getElementById('contextSafetyDays').value
+  );
+
+  if (
+    !project ||
+    !object ||
+    !work ||
+    !startDate ||
+    !endDate
+  ) {
+    alert(
+      'Заполните проект, объект, работу, начало и окончание работы по ГПР.'
+    );
+    return;
+  }
+
+  if (endDate < startDate) {
+    alert(
+      'Дата окончания работы не может быть раньше даты начала.'
+    );
+    return;
+  }
+
+  if (
+    !Number.isFinite(safetyDays) ||
+    safetyDays < 0
+  ) {
+    alert(
+      'Страховой запас должен быть числом не меньше нуля.'
+    );
+    return;
+  }
+
+  const duplicateContext =
+    workContexts.some(function (context) {
+      return (
+        context.project.toLowerCase() ===
+          project.toLowerCase() &&
+        context.object.toLowerCase() ===
+          object.toLowerCase() &&
+        context.work.toLowerCase() ===
+          work.toLowerCase()
       );
+    });
 
-      if (!project || !object || !work || !startDate) {
-        alert(
-          'Заполните проект, объект, работу и дату начала.'
-        );
-        return;
-      }
+  if (duplicateContext) {
+    alert(
+      'Такая работа уже существует в выбранном проекте и объекте.'
+    );
+    return;
+  }
 
-      if (
-        !Number.isFinite(safetyDays) ||
-        safetyDays < 0
-      ) {
-        alert(
-          'Страховой запас должен быть числом не меньше нуля.'
-        );
-        return;
-      }
+  const newContext = {
+    id: 'context-' + Date.now(),
+    project,
+    object,
+    work,
+    startDate,
+    endDate,
+    safetyDays
+  };
 
-      const duplicateContext = workContexts.some(function (context) {
-        return (
-          context.project.toLowerCase() === project.toLowerCase() &&
-          context.object.toLowerCase() === object.toLowerCase() &&
-          context.work.toLowerCase() === work.toLowerCase()
-        );
-      });
+  workContexts.push(newContext);
 
-      if (duplicateContext) {
-        alert(
-          'Такой проект, объект и работа уже существуют.'
-        );
-        return;
-      }
-
-      const newContext = {
-        id: 'context-' + Date.now(),
-        project,
-        object,
-        work,
-        startDate,
-        safetyDays
-      };
-
-      workContexts.push(newContext);
-
-      saveWorkContexts();
-      closeContextForm();
-      selectWorkContextById(newContext.id);
-    }
+  saveWorkContexts();
+  closeContextForm();
+  selectWorkContextById(newContext.id);
+}
 
     function deleteWorkContext(contextId) {
       const contextToDelete = workContexts.find(function (context) {
@@ -899,6 +921,7 @@ saveWorkContexts();
       document.getElementById('currentObject').textContent = '—';
       document.getElementById('currentWork').textContent = '—';
       document.getElementById('currentStartDate').textContent = '—';
+      document.getElementById('currentEndDate').textContent = '—';
       document.getElementById('currentSafetyDays').textContent = '—';
 
       document.getElementById('newProject').value = '';
