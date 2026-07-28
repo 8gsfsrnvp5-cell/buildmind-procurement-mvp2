@@ -177,9 +177,9 @@
  <div class="card work-contexts-card">
   <h2>Контексты работ</h2>
 
-  <p class="muted">
-    Выберите проект, объект и работу. После выбора форма материала заполнится автоматически.
-  </p>
+ <p class="muted">
+  Проект и объект берутся из данных проекта. Выберите работу, после чего форма материала заполнится автоматически.
+</p>
 
   <div id="contextsList" class="contexts-list"></div>
 
@@ -196,12 +196,12 @@
 
     <label>
       Проект
-      <input id="contextProject" />
+     <input id="contextProject" readonly />
     </label>
 
     <label>
       Объект
-      <input id="contextObject" />
+      <input id="contextObject" readonly />
     </label>
 
     <label>
@@ -750,20 +750,47 @@ saveWorkContexts();
       renderWorkContexts();
     }
 
-    function openContextForm() {
-      const form = document.getElementById('contextForm');
+   function openContextForm() {
+  const form =
+    document.getElementById('contextForm');
 
-      if (form) {
-        form.classList.remove('hidden');
-      }
+  const projectInput =
+    document.getElementById('contextProject');
 
-      const projectInput =
-        document.getElementById('contextProject');
+  const objectInput =
+    document.getElementById('contextObject');
 
-      if (projectInput) {
-        projectInput.focus();
-      }
-    }
+  const workInput =
+    document.getElementById('contextWork');
+
+  const projectNameInput =
+    document.getElementById('projectName');
+
+  const objectNameInput =
+    document.getElementById('objectName');
+
+  if (projectInput) {
+    projectInput.value =
+      projectNameInput
+        ? projectNameInput.value.trim()
+        : '';
+  }
+
+  if (objectInput) {
+    objectInput.value =
+      objectNameInput
+        ? objectNameInput.value.trim()
+        : '';
+  }
+
+  if (form) {
+    form.classList.remove('hidden');
+  }
+
+  if (workInput) {
+    workInput.focus();
+  }
+}
 
     function closeContextForm() {
       const form = document.getElementById('contextForm');
