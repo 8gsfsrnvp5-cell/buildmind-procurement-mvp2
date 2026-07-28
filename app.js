@@ -55,191 +55,99 @@ function addDays(date, days) {
   result.setDate(result.getDate() + days);
   return result;
 }
-function getStoredWorkContextsForMaterials() {
-  const savedContexts =
-    localStorage.getItem('buildmindWorkContexts');
 
-  if (!savedContexts) {
-    return [];
+function riskFor(row, needDate, today) {
+  const free = Math.max(row.stock - row.reserved, 0);
+  const available = free + row.confirmed;
+  const deficit = Math.max(row.need - available, 0);
+  const orderDeadline = addDays(needDate, -row.leadDays);
+  const delivery = parseDate(row.deliveryDate);
+
+  if (deficit > 0) {
+    return {
+      level: 'critical',
+      text: 'Критический',
+      action: `Оформить дополнительную заявку на ${deficit} ${row.unit}. Крайняя дата заказа: ${formatDate(orderDeadline)}.`
+    };
   }
 
-  try {
-    const parsedContexts = JSON.parse(savedContexts);
-
-    return Array.isArray(parsedContexts)
-      ? parsedContexts
-      : [];
-  } catch (error) {
-    console.warn(
-      'Не удалось прочитать контексты работ:',
-      error
-    );
-
-    return [];
+  if (delivery && delivery > needDate) {
+    return {
+      level: 'critical',
+      text: 'Критический',
+      action: 'Поставка позже даты потребности. Ускорить поставку или найти резервного поставщика.'
+    };
   }
+
+  if (today > orderDeadline && row.confirmed === 0) {
+    return {
+      level: 'warning',
+      text: 'Предупреждение',
+      action: 'Крайняя дата заказа уже прошла. Проверьте наличие резерва или альтернативного поставщика.'
+    };
+  }
+
+  return {
+    level: 'ok',
+    text: 'ОК',
+    action: 'Материал обеспечен при условии подтверждения статуса поставки.'
+  };
 }
 
-function normalizeContextValue(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
-
-function findContextForMaterial(material, workContexts) {
-  return workContexts.find(function (context) {
-    return (
-      normalizeContextValue(context.project) ===
-        normalizeContextValue(material.project) &&
-      normalizeContextValue(context.object) ===
-        normalizeContextValue(material.object) &&
-      normalizeContextValue(context.work) ===
-        normalizeContextValue(material.work)
-    );
-  });
-}
 function render() {
-  const tbody =
-    document.querySelector('#materialsTable tbody');
-
-  if (!tbody) {
-    return;
-  }
-
+  const tbody = document.querySelector('#materialsTable tbody');
   tbody.innerHTML = '';
 
-  const workContexts =
-    getStoredWorkContextsForMaterials();
-
-  const today = new Date();
-
-  today.setHours(0, 0, 0, 0);
-
-  /*
-    Эти два старых поля используются только как временный резерв,
-    пока старое окно «Данные проекта» ещё находится на странице.
-    После его удаления код продолжит работать и без них.
-  */
-  const legacyStartInput =
-    document.getElementById('workStartDate');
-
-  const legacySafetyInput =
-    document.getElementById('safetyDays');
-
-  const legacyStartDate = legacyStartInput
-    ? parseDate(legacyStartInput.value)
-    : null;
-
-  const legacySafetyDays = legacySafetyInput
-    ? Number(legacySafetyInput.value || 0)
-    : 0;
+  const startDate = parseDate(document.getElementById('workStartDate').value);
+  const safetyDays = Number(document.getElementById('safetyDays').value || 0);
+  const today = parseDate(document.getElementById('todayDate').value) || new Date();
+  const needDate = addDays(startDate, -safetyDays);
 
   let critical = 0;
   let warning = 0;
   let ok = 0;
 
-  materials.forEach(function (row, index) {
-    const stock = Number(row.stock) || 0;
-    const reserved = Number(row.reserved) || 0;
-    const confirmed = Number(row.confirmed) || 0;
-    const need = Number(row.need) || 0;
-    const leadDays = Number(row.leadDays) || 0;
+  materials.forEach((row, index) => {
+    const free = Math.max(row.stock - row.reserved, 0);
+    const available = free + row.confirmed;
+    const deficit = Math.max(row.need - available, 0);
+    const orderDeadline = addDays(needDate, -row.leadDays);
+    const risk = riskFor(row, needDate, today);
 
-    const free = Math.max(stock - reserved, 0);
-    const available = free + confirmed;
-    const deficit = Math.max(need - available, 0);
-
-    const workContext =
-      findContextForMaterial(row, workContexts);
-
-    const contextStartDate = workContext
-      ? parseDate(workContext.startDate)
-      : null;
-
-    const startDate =
-      contextStartDate || legacyStartDate;
-
-    const contextSafetyDays =
-      workContext &&
-      Number.isFinite(Number(workContext.safetyDays))
-        ? Number(workContext.safetyDays)
-        : legacySafetyDays;
-
-    const needDate = startDate
-      ? addDays(startDate, -contextSafetyDays)
-      : null;
-
-    const orderDeadline = needDate
-      ? addDays(needDate, -leadDays)
-      : null;
-
-    const risk = riskFor(
-      row,
-      needDate,
-      today
-    );
-
-    if (risk.level === 'critical') {
-      critical++;
-    }
-
-    if (risk.level === 'warning') {
-      warning++;
-    }
-
-    if (risk.level === 'ok') {
-      ok++;
-    }
+    if (risk.level === 'critical') critical++;
+    if (risk.level === 'warning') warning++;
+    if (risk.level === 'ok') ok++;
 
     const tr = document.createElement('tr');
-
     tr.innerHTML = `
       <td>${row.project || '—'}</td>
       <td>${row.object || '—'}</td>
       <td>${row.work || '—'}</td>
       <td>${row.name}</td>
       <td>${row.responsible || '—'}</td>
-      <td>${need}</td>
+      <td>${row.need}</td>
       <td>${row.unit}</td>
-      <td>${stock}</td>
-      <td>${reserved}</td>
+      <td>${row.stock}</td>
+      <td>${row.reserved}</td>
       <td>${free}</td>
-      <td>${confirmed}</td>
+      <td>${row.confirmed}</td>
       <td>${row.deliveryDate || '—'}</td>
-      <td>${leadDays}</td>
+      <td>${row.leadDays}</td>
       <td>${deficit}</td>
       <td>${formatDate(needDate)}</td>
       <td>${formatDate(orderDeadline)}</td>
-      <td>
-        <span class="badge ${risk.level}">
-          ${risk.text}
-        </span>
-      </td>
+      <td><span class="badge ${risk.level}">${risk.text}</span></td>
       <td>${risk.action}</td>
-      <td>
-        <button
-          class="small-btn"
-          onclick="deleteMaterial(${index})"
-        >
-          Удалить
-        </button>
-      </td>
+      <td><button class="small-btn" onclick="deleteMaterial(${index})">Удалить</button></td>
     `;
-
     tbody.appendChild(tr);
   });
 
-  document.getElementById(
-    'criticalCount'
-  ).textContent = critical;
-
-  document.getElementById(
-    'warningCount'
-  ).textContent = warning;
-
-  document.getElementById(
-    'okCount'
-  ).textContent = ok;
+  document.getElementById('criticalCount').textContent = critical;
+  document.getElementById('warningCount').textContent = warning;
+  document.getElementById('okCount').textContent = ok;
 }
+
 function addMaterial() {
   const project = document.getElementById('newProject').value.trim() || 'Без проекта';
   const object = document.getElementById('newObject').value.trim() || 'Без объекта';
@@ -303,54 +211,24 @@ function resetMaterials() {
 
 function exportJson() {
   const data = {
-    exportedAt: new Date().toISOString(),
-
-    selectedProject:
-      localStorage.getItem(
-        'buildmindSelectedProject'
-      ) || '',
-
-    selectedObject:
-      localStorage.getItem(
-        'buildmindSelectedObject'
-      ) || '',
-
-    activeContextId:
-      localStorage.getItem(
-        'buildmindActiveContextId'
-      ) || '',
-
-    workContexts:
-      getStoredWorkContextsForMaterials(),
-
+    project: document.getElementById('projectName').value,
+    object: document.getElementById('objectName').value,
+    work: document.getElementById('workName').value,
+    workStartDate: document.getElementById('workStartDate').value,
+    safetyDays: Number(document.getElementById('safetyDays').value || 0),
     materials
   };
 
-  const blob = new Blob(
-    [JSON.stringify(data, null, 2)],
-    {
-      type: 'application/json'
-    }
-  );
-
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-
   a.href = url;
   a.download = 'buildmind-data.json';
   a.click();
-
   URL.revokeObjectURL(url);
 }
-const recalcBtn =
-  document.getElementById('recalcBtn');
 
-if (recalcBtn) {
-  recalcBtn.addEventListener(
-    'click',
-    render
-  );
-}
+document.getElementById('recalcBtn').addEventListener('click', render);
 document.getElementById('addBtn').addEventListener('click', addMaterial);
 document.getElementById('exportBtn').addEventListener('click', exportJson);
 document.getElementById('resetBtn').addEventListener('click', resetMaterials);
@@ -489,4 +367,3 @@ function clearBuildMindAssistant() {
 
 window.runBuildMindAssistant = runBuildMindAssistant;
 window.clearBuildMindAssistant = clearBuildMindAssistant;
-
