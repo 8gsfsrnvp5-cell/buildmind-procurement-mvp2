@@ -98,11 +98,130 @@
   </button>
 </section>
 
-    <section class="card stats">
-      <div><strong id="criticalCount">0</strong><span>критических рисков</span></div>
-      <div><strong id="warningCount">0</strong><span>предупреждений</span></div>
-      <div><strong id="okCount">0</strong><span>обеспечено</span></div>
-    </section>
+   <section
+  id="operationalControlCenter"
+  class="card operational-control-center"
+>
+  <div class="control-center-header">
+    <div>
+      <h2>Центр оперативного контроля</h2>
+
+      <p class="muted">
+        Сводка активных рисков, потребностей в закупке,
+        ожидаемых и задержанных поставок по всем проектам,
+        объектам и работам.
+      </p>
+    </div>
+
+    <div class="control-analysis-date">
+      Дата анализа:
+      <strong id="controlAnalysisDate">—</strong>
+    </div>
+  </div>
+
+  <div class="control-summary">
+    <button
+      type="button"
+      class="control-summary-item control-critical"
+      data-control-filter="critical"
+    >
+      <strong id="criticalCount">0</strong>
+      <span>Критические</span>
+    </button>
+
+    <button
+      type="button"
+      class="control-summary-item control-order"
+      data-control-filter="order"
+    >
+      <strong id="warningCount">0</strong>
+      <span>Нужно заказать</span>
+    </button>
+
+    <button
+      type="button"
+      class="control-summary-item control-low-stock"
+      data-control-filter="low-stock"
+    >
+      <strong id="lowStockCount">0</strong>
+      <span>Заканчиваются</span>
+    </button>
+
+    <button
+      type="button"
+      class="control-summary-item control-expected"
+      data-control-filter="expected"
+    >
+      <strong id="expectedDeliveryCount">0</strong>
+      <span>Ожидаемые поставки</span>
+    </button>
+
+    <button
+      type="button"
+      class="control-summary-item control-delayed"
+      data-control-filter="delayed"
+    >
+      <strong id="delayedDeliveryCount">0</strong>
+      <span>Задерживаются</span>
+    </button>
+
+    <button
+      type="button"
+      class="control-summary-item control-ok"
+      data-control-filter="ok"
+    >
+      <strong id="okCount">0</strong>
+      <span>Обеспечено</span>
+    </button>
+  </div>
+
+  <div class="control-toolbar">
+    <label>
+      Показать
+      <select id="controlStatusFilter">
+        <option value="all">Все активные события</option>
+        <option value="critical">Критические</option>
+        <option value="order">Нужно заказать</option>
+        <option value="low-stock">Заканчиваются</option>
+        <option value="expected">Ожидаемые поставки</option>
+        <option value="delayed">Задерживаются</option>
+        <option value="ok">Обеспечено</option>
+      </select>
+    </label>
+
+    <label>
+      Проект
+      <select id="controlProjectFilter">
+        <option value="all">Все проекты</option>
+      </select>
+    </label>
+
+    <label>
+      Объект
+      <select id="controlObjectFilter">
+        <option value="all">Все объекты</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="control-events-header">
+    <h3>Активные события и рекомендации</h3>
+
+    <span id="controlEventsTotal">
+      Найдено событий: 0
+    </span>
+  </div>
+
+  <div
+    id="controlEventsList"
+    class="control-events-list"
+  >
+    <div class="control-empty-state">
+      Данные анализируются. Здесь появятся критические
+      материалы, закупки и поставки.
+    </div>
+  </div>
+</section>
 <section class="card assistant-card">
   <h2>Командное окно BuildMind</h2>
   <p class="muted">
