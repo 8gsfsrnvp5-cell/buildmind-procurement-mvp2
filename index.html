@@ -16,101 +16,20 @@
   </header>
 
   <main class="layout">
-  <section class="card">
-  <h2>Данные проекта</h2>
-
-  <p class="muted">
-    Общие даты относятся ко всему проекту. Сроки отдельных работ задаются ниже в контекстах работ.
-  </p>
-
-  <div class="grid">
-    <label>
-      Проект
-      <input
-        id="projectName"
-        value="АСУДД 1"
-      />
-    </label>
-
-    <label>
-      Объект
-      <input
-        id="objectName"
-        value="СВХ"
-      />
-    </label>
-
-    <label>
-      Общее начало проекта по ГПР
-      <input
-        id="projectStartDate"
-        type="date"
-        value="2026-07-01"
-      />
-    </label>
-
-    <label>
-      Общее окончание проекта по ГПР
-      <input
-        id="projectEndDate"
-        type="date"
-        value="2026-12-30"
-      />
-    </label>
-
-    <label>
-      Дата анализа
-      <input
-        id="todayDate"
-        type="date"
-        value="2026-07-09"
-      />
-    </label>
-  </div>
-
-  <!--
-    Временные технические поля.
-    Их пока использует app.js для расчёта материалов.
-    Не удалять до подключения расчётов к выбранному контексту.
-  -->
-  <div style="display: none;" aria-hidden="true">
-    <input
-      id="workName"
-      value="Кабельная канализация на эстакаде В4"
-    />
-
-    <input
-      id="workStartDate"
-      type="date"
-      value="2026-07-30"
-    />
-
-    <input
-      id="safetyDays"
-      type="number"
-      value="2"
-      min="0"
-    />
-  </div>
-
-  <button id="recalcBtn" class="primary">
-    Пересчитать риски
-  </button>
-</section>
-
-   <section
+     
+    <section
   id="operationalControlCenter"
   class="card operational-control-center"
 >
   <div class="control-center-header">
     <div>
-      <h2>Центр оперативного контроля</h2>
+      <h2>Оперативный центр компании</h2>
 
-      <p class="muted">
-        Сводка активных рисков, потребностей в закупке,
-        ожидаемых и задержанных поставок по всем проектам,
-        объектам и работам.
-      </p>
+     <p class="muted">
+  Общая сводка критических рисков, закупок,
+  поставок и обеспеченности по всем проектам,
+  объектам и работам компании.
+</p>
     </div>
 
     <div class="control-analysis-date">
@@ -222,6 +141,90 @@
     </div>
   </div>
 </section>
+    
+  <section class="card">
+  <h2>Данные проекта</h2>
+
+  <p class="muted">
+    Общие даты относятся ко всему проекту. Сроки отдельных работ задаются ниже в контекстах работ.
+  </p>
+
+  <div class="grid">
+    <label>
+      Проект
+      <input
+        id="projectName"
+        value="АСУДД 1"
+      />
+    </label>
+
+    <label>
+      Объект
+      <input
+        id="objectName"
+        value="СВХ"
+      />
+    </label>
+
+    <label>
+      Общее начало проекта по ГПР
+      <input
+        id="projectStartDate"
+        type="date"
+        value="2026-07-01"
+      />
+    </label>
+
+    <label>
+      Общее окончание проекта по ГПР
+      <input
+        id="projectEndDate"
+        type="date"
+        value="2026-12-30"
+      />
+    </label>
+
+    <label>
+      Дата анализа
+      <input
+        id="todayDate"
+        type="date"
+        value="2026-07-09"
+      />
+    </label>
+  </div>
+
+  <!--
+    Временные технические поля.
+    Их пока использует app.js для расчёта материалов.
+    Не удалять до подключения расчётов к выбранному контексту.
+  -->
+  <div style="display: none;" aria-hidden="true">
+    <input
+      id="workName"
+      value="Кабельная канализация на эстакаде В4"
+    />
+
+    <input
+      id="workStartDate"
+      type="date"
+      value="2026-07-30"
+    />
+
+    <input
+      id="safetyDays"
+      type="number"
+      value="2"
+      min="0"
+    />
+  </div>
+
+  <button id="recalcBtn" class="primary">
+    Пересчитать риски
+  </button>
+</section>
+
+ 
 <section class="card assistant-card">
   <h2>Командное окно BuildMind</h2>
   <p class="muted">
