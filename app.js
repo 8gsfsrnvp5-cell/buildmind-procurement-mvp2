@@ -93,7 +93,761 @@ function riskFor(row, needDate, today) {
     action: 'Материал обеспечен при условии подтверждения статуса поставки.'
   };
 }
+let activeControlFilter = 'all';
 
+const CONTROL_STATUS_LABELS = {
+  critical: 'Критический риск',
+  order: 'Нужно заказать',
+  'low-stock': 'Заканчивается',
+  expected: 'Ожидаемая поставка',
+  delayed: 'Поставка задерживается',
+  ok: 'Обеспечено'
+};
+
+function normalizeControlValue(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase();
+}
+
+function getSavedWorkContextsForControl() {
+  const savedContexts =
+    localStorage.getItem('buildmindWorkContexts');
+
+  if (!savedContexts) {
+    return [];
+  }
+
+  try {
+    const parsedContexts =
+      JSON.parse(savedContexts);
+
+    return Array.isArray(parsedContexts)
+      ? parsedContexts
+      : [];
+  } catch (error) {
+    console.warn(
+      'Не удалось прочитать контексты работ:',
+      error
+    );
+
+    return [];
+  }
+}
+
+function getMaterialScheduleForControl(row) {
+  const contexts =
+    getSavedWorkContextsForControl();
+
+  const materialProject =
+    normalizeControlValue(row.project);
+
+  const materialObject =
+    normalizeControlValue(row.object);
+
+  const materialWork =
+    normalizeControlValue(row.work);
+
+  const matchedContext =
+    contexts.find(function (context) {
+      return (
+        normalizeControlValue(context.project) ===
+          materialProject &&
+        normalizeControlValue(context.object) ===
+          materialObject &&
+        normalizeControlValue(context.work) ===
+          materialWork
+      );
+    });
+
+  const technicalStartDate =
+    document.getElementById('workStartDate');
+
+  const technicalSafetyDays =
+    document.getElementById('safetyDays');
+
+  const startDateValue =
+    matchedContext && matchedContext.startDate
+      ? matchedContext.startDate
+      : technicalStartDate
+        ? technicalStartDate.value
+        : '';
+
+  const safetyDays =
+    matchedContext
+      ? Number(matchedContext.safetyDays || 0)
+      : technicalSafetyDays
+        ? Number(technicalSafetyDays.value || 0)
+        : 0;
+
+  const startDate =
+    parseDate(startDateValue);
+
+  const needDate =
+    startDate
+      ? addDays(startDate, -safetyDays)
+      : null;
+
+  return {
+    startDate,
+    safetyDays,
+    needDate
+  };
+}
+
+function getControlPrimaryStatus(categories) {
+  const priority = [
+    'delayed',
+    'critical',
+    'order',
+    'low-stock',
+    'expected',
+    'ok'
+  ];
+
+  return (
+    priority.find(function (status) {
+      return categories.includes(status);
+    }) || 'ok'
+  );
+}
+
+function buildControlEvent(row, index, today) {
+  const need =
+    Number(row.need) || 0;
+
+  const stock =
+    Number(row.stock) || 0;
+
+  const reserved =
+    Number(row.reserved) || 0;
+
+  const confirmed =
+    Number(row.confirmed) || 0;
+
+  const leadDays =
+    Number(row.leadDays) || 0;
+
+  const free =
+    Math.max(stock - reserved, 0);
+
+  const available =
+    free + confirmed;
+
+  const deficit =
+    Math.max(need - available, 0);
+
+  const schedule =
+    getMaterialScheduleForControl(row);
+
+  const needDate =
+    schedule.needDate;
+
+  const orderDeadline =
+    needDate
+      ? addDays(needDate, -leadDays)
+      : null;
+
+  const deliveryDate =
+    parseDate(row.deliveryDate);
+
+  const deliveryAfterNeed =
+    Boolean(
+      deliveryDate &&
+      needDate &&
+      deliveryDate > needDate
+    );
+
+  const categories = [];
+
+  if (
+    !needDate ||
+    deficit > 0 ||
+    deliveryAfterNeed
+  ) {
+    categories.push('critical');
+  }
+
+  if (deficit > 0) {
+    categories.push('order');
+  }
+
+  if (free < need) {
+    categories.push('low-stock');
+  }
+
+  if (
+    confirmed > 0 &&
+    deliveryDate &&
+    deliveryDate >= today
+  ) {
+    categories.push('expected');
+  }
+
+  if (
+    confirmed > 0 &&
+    deliveryDate &&
+    deliveryDate < today &&
+    free < need
+  ) {
+    categories.push('delayed');
+  }
+
+  if (free >= need) {
+    categories.push('ok');
+  }
+
+  const primary =
+    getControlPrimaryStatus(categories);
+
+  let reason = '';
+  let recommendation = '';
+
+  if (primary === 'delayed') {
+    reason =
+      'Ожидаемая дата поставки уже прошла, а свободного остатка недостаточно.';
+
+    recommendation =
+      'Уточнить фактический статус у поставщика и подтвердить новую дату доставки.';
+  } else if (primary === 'critical') {
+    if (!needDate) {
+      reason =
+        'Для материала не найдена подтверждённая дата потребности.';
+
+      recommendation =
+        'Проверить привязку материала к контексту работы и графику.';
+    } else if (deliveryAfterNeed) {
+      reason =
+        'Поставка запланирована позже даты потребности материала.';
+
+      recommendation =
+        'Ускорить поставку, найти резервный источник или проверить допустимый аналог.';
+    } else {
+      reason =
+        `После учёта склада и подтверждённых поставок не хватает ${deficit} ${row.unit || ''}.`;
+
+      recommendation =
+        'Срочно проверить закупку и дополнительную потребность.';
+    }
+  } else if (primary === 'order') {
+    reason =
+      `Необходимо дополнительно заказать ${deficit} ${row.unit || ''}.`;
+
+    recommendation =
+      'Оформить заявку до крайней даты заказа.';
+  } else if (primary === 'low-stock') {
+    reason =
+      'Свободный складской остаток меньше потребности работы.';
+
+    recommendation =
+      'Проверить подтверждённые поставки и доступные складские резервы.';
+  } else if (primary === 'expected') {
+    reason =
+      'Поставка подтверждена поставщиком и ожидается.';
+
+    recommendation =
+      'Контролировать дату отгрузки и фактическое поступление.';
+  } else {
+    reason =
+      'Свободного складского остатка достаточно для текущей потребности.';
+
+    recommendation =
+      'Поддерживать актуальность складских данных.';
+  }
+
+  return {
+    index,
+    project: row.project || 'Без проекта',
+    object: row.object || 'Без объекта',
+    work: row.work || 'Без работы',
+    name: row.name || 'Без названия',
+    responsible:
+      row.responsible || 'Не назначен',
+    unit: row.unit || '',
+    need,
+    stock,
+    reserved,
+    free,
+    confirmed,
+    available,
+    deficit,
+    leadDays,
+    needDate,
+    orderDeadline,
+    deliveryDate,
+    categories,
+    primary,
+    reason,
+    recommendation
+  };
+}
+
+function escapeControlHtml(value) {
+  const symbols = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+
+  return String(value ?? '').replace(
+    /[&<>"']/g,
+    function (symbol) {
+      return symbols[symbol];
+    }
+  );
+}
+
+function formatControlNumber(value) {
+  const number = Number(value);
+
+  return Number.isFinite(number)
+    ? number.toLocaleString('ru-RU')
+    : '0';
+}
+
+function formatControlDate(date) {
+  if (!date) {
+    return '—';
+  }
+
+  return date.toLocaleDateString('ru-RU');
+}
+
+function setControlCount(elementId, value) {
+  const element =
+    document.getElementById(elementId);
+
+  if (element) {
+    element.textContent = value;
+  }
+}
+
+function fillControlSelect(
+  selectElement,
+  values,
+  allLabel
+) {
+  if (!selectElement) {
+    return;
+  }
+
+  const previousValue =
+    selectElement.value || 'all';
+
+  const sortedValues =
+    [...values].sort(function (first, second) {
+      return first.localeCompare(
+        second,
+        'ru'
+      );
+    });
+
+  selectElement.innerHTML = '';
+
+  const allOption =
+    document.createElement('option');
+
+  allOption.value = 'all';
+  allOption.textContent = allLabel;
+
+  selectElement.appendChild(allOption);
+
+  sortedValues.forEach(function (value) {
+    const option =
+      document.createElement('option');
+
+    option.value = value;
+    option.textContent = value;
+
+    selectElement.appendChild(option);
+  });
+
+  selectElement.value =
+    sortedValues.includes(previousValue)
+      ? previousValue
+      : 'all';
+}
+
+function updateControlButtonsState() {
+  const buttons =
+    document.querySelectorAll(
+      '[data-control-filter]'
+    );
+
+  buttons.forEach(function (button) {
+    const selected =
+      button.dataset.controlFilter ===
+      activeControlFilter;
+
+    button.classList.toggle(
+      'active',
+      selected
+    );
+
+    button.setAttribute(
+      'aria-pressed',
+      selected ? 'true' : 'false'
+    );
+  });
+}
+
+function renderOperationalControlCenter() {
+  const eventsList =
+    document.getElementById(
+      'controlEventsList'
+    );
+
+  if (!eventsList) {
+    return;
+  }
+
+  const todayInput =
+    document.getElementById('todayDate');
+
+  const today =
+    parseDate(
+      todayInput ? todayInput.value : ''
+    ) || new Date();
+
+  const events =
+    materials.map(function (row, index) {
+      return buildControlEvent(
+        row,
+        index,
+        today
+      );
+    });
+
+  const countByStatus =
+    function (status) {
+      return events.filter(function (event) {
+        return event.categories.includes(status);
+      }).length;
+    };
+
+  setControlCount(
+    'criticalCount',
+    countByStatus('critical')
+  );
+
+  setControlCount(
+    'warningCount',
+    countByStatus('order')
+  );
+
+  setControlCount(
+    'lowStockCount',
+    countByStatus('low-stock')
+  );
+
+  setControlCount(
+    'expectedDeliveryCount',
+    countByStatus('expected')
+  );
+
+  setControlCount(
+    'delayedDeliveryCount',
+    countByStatus('delayed')
+  );
+
+  setControlCount(
+    'okCount',
+    countByStatus('ok')
+  );
+
+  const analysisDate =
+    document.getElementById(
+      'controlAnalysisDate'
+    );
+
+  if (analysisDate) {
+    analysisDate.textContent =
+      formatControlDate(today);
+  }
+
+  const projectFilter =
+    document.getElementById(
+      'controlProjectFilter'
+    );
+
+  const objectFilter =
+    document.getElementById(
+      'controlObjectFilter'
+    );
+
+  const statusFilter =
+    document.getElementById(
+      'controlStatusFilter'
+    );
+
+  const projects =
+    Array.from(
+      new Set(
+        events.map(function (event) {
+          return event.project;
+        })
+      )
+    );
+
+  fillControlSelect(
+    projectFilter,
+    projects,
+    'Все проекты'
+  );
+
+  const selectedProject =
+    projectFilter
+      ? projectFilter.value
+      : 'all';
+
+  const objects =
+    Array.from(
+      new Set(
+        events
+          .filter(function (event) {
+            return (
+              selectedProject === 'all' ||
+              event.project ===
+                selectedProject
+            );
+          })
+          .map(function (event) {
+            return event.object;
+          })
+      )
+    );
+
+  fillControlSelect(
+    objectFilter,
+    objects,
+    'Все объекты'
+  );
+
+  const selectedObject =
+    objectFilter
+      ? objectFilter.value
+      : 'all';
+
+  if (statusFilter) {
+    statusFilter.value =
+      activeControlFilter;
+  }
+
+  const filteredEvents =
+    events.filter(function (event) {
+      const statusMatches =
+        activeControlFilter === 'all' ||
+        event.categories.includes(
+          activeControlFilter
+        );
+
+      const projectMatches =
+        selectedProject === 'all' ||
+        event.project === selectedProject;
+
+      const objectMatches =
+        selectedObject === 'all' ||
+        event.object === selectedObject;
+
+      return (
+        statusMatches &&
+        projectMatches &&
+        objectMatches
+      );
+    });
+
+  const totalElement =
+    document.getElementById(
+      'controlEventsTotal'
+    );
+
+  if (totalElement) {
+    totalElement.textContent =
+      `Найдено событий: ${filteredEvents.length}`;
+  }
+
+  eventsList.innerHTML = '';
+
+  if (filteredEvents.length === 0) {
+    const emptyState =
+      document.createElement('div');
+
+    emptyState.className =
+      'control-empty-state';
+
+    emptyState.textContent =
+      'По выбранным фильтрам событий не найдено.';
+
+    eventsList.appendChild(emptyState);
+    updateControlButtonsState();
+    return;
+  }
+
+  filteredEvents.forEach(function (event) {
+    const card =
+      document.createElement('article');
+
+    card.className =
+      'control-event-card ' +
+      `control-event-card-${event.primary}`;
+
+    const categoryNames =
+      event.categories
+        .map(function (status) {
+          return CONTROL_STATUS_LABELS[status];
+        })
+        .join(', ');
+
+    card.innerHTML = `
+      <h4>${escapeControlHtml(event.name)}</h4>
+
+      <p>
+        <strong>Основной статус:</strong>
+        ${escapeControlHtml(
+          CONTROL_STATUS_LABELS[event.primary]
+        )}
+      </p>
+
+      <p>
+        <strong>Категории контроля:</strong>
+        ${escapeControlHtml(categoryNames)}
+      </p>
+
+      <p>
+        <strong>Проект / объект / работа:</strong>
+        ${escapeControlHtml(event.project)}
+        /
+        ${escapeControlHtml(event.object)}
+        /
+        ${escapeControlHtml(event.work)}
+      </p>
+
+      <p>
+        <strong>Ответственный:</strong>
+        ${escapeControlHtml(event.responsible)}
+      </p>
+
+      <p>
+        <strong>Нужно:</strong>
+        ${formatControlNumber(event.need)}
+        ${escapeControlHtml(event.unit)}
+
+        · <strong>Свободно:</strong>
+        ${formatControlNumber(event.free)}
+        ${escapeControlHtml(event.unit)}
+
+        · <strong>Подтверждено:</strong>
+        ${formatControlNumber(event.confirmed)}
+        ${escapeControlHtml(event.unit)}
+
+        · <strong>Дефицит:</strong>
+        ${formatControlNumber(event.deficit)}
+        ${escapeControlHtml(event.unit)}
+      </p>
+
+      <p>
+        <strong>Дата потребности:</strong>
+        ${formatControlDate(event.needDate)}
+
+        · <strong>Крайняя дата заказа:</strong>
+        ${formatControlDate(
+          event.orderDeadline
+        )}
+
+        · <strong>Дата поставки:</strong>
+        ${formatControlDate(
+          event.deliveryDate
+        )}
+      </p>
+
+      <p>
+        <strong>Причина:</strong>
+        ${escapeControlHtml(event.reason)}
+      </p>
+
+      <p>
+        <strong>Рекомендация:</strong>
+        ${escapeControlHtml(
+          event.recommendation
+        )}
+      </p>
+    `;
+
+    eventsList.appendChild(card);
+  });
+
+  updateControlButtonsState();
+}
+
+function initializeOperationalControlCenter() {
+  const buttons =
+    document.querySelectorAll(
+      '[data-control-filter]'
+    );
+
+  const statusFilter =
+    document.getElementById(
+      'controlStatusFilter'
+    );
+
+  const projectFilter =
+    document.getElementById(
+      'controlProjectFilter'
+    );
+
+  const objectFilter =
+    document.getElementById(
+      'controlObjectFilter'
+    );
+
+  buttons.forEach(function (button) {
+    button.addEventListener(
+      'click',
+      function () {
+        activeControlFilter =
+          button.dataset.controlFilter ||
+          'all';
+
+        if (statusFilter) {
+          statusFilter.value =
+            activeControlFilter;
+        }
+
+        renderOperationalControlCenter();
+      }
+    );
+  });
+
+  if (statusFilter) {
+    statusFilter.addEventListener(
+      'change',
+      function () {
+        activeControlFilter =
+          statusFilter.value || 'all';
+
+        renderOperationalControlCenter();
+      }
+    );
+  }
+
+  if (projectFilter) {
+    projectFilter.addEventListener(
+      'change',
+      renderOperationalControlCenter
+    );
+  }
+
+  if (objectFilter) {
+    objectFilter.addEventListener(
+      'change',
+      renderOperationalControlCenter
+    );
+  }
+
+  updateControlButtonsState();
+}
 function render() {
   const tbody = document.querySelector('#materialsTable tbody');
   tbody.innerHTML = '';
@@ -146,6 +900,8 @@ function render() {
   document.getElementById('criticalCount').textContent = critical;
   document.getElementById('warningCount').textContent = warning;
   document.getElementById('okCount').textContent = ok;
+
+  renderOperationalControlCenter();
 }
 
 function addMaterial() {
@@ -232,6 +988,8 @@ document.getElementById('recalcBtn').addEventListener('click', render);
 document.getElementById('addBtn').addEventListener('click', addMaterial);
 document.getElementById('exportBtn').addEventListener('click', exportJson);
 document.getElementById('resetBtn').addEventListener('click', resetMaterials);
+
+initializeOperationalControlCenter();
 render();
 function calculateAssistantRow(material) {
   const need = Number(material.need) || 0;
