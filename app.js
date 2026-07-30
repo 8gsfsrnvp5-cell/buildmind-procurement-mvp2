@@ -2,15 +2,15 @@ const STORAGE_KEY = 'buildmind-procurement-data-v1';
 
 const defaultMaterials = [
   {
-    project: 'АСУДД 1', object: 'СВХ', work: 'Кабельная канализация на эстакаде В4', name: 'Труба 76', responsible: 'Снабженец', unit: 'м', need: 5800, stock: 0, reserved: 3000,
+    project: 'АСУДД 1', object: 'СВХ', work: 'Кабельная канализация на эстакаде ДВ-4', name: 'Труба 76', responsible: 'Снабженец', unit: 'м', need: 5800, stock: 0, reserved: 3000,
     confirmed: 3000, deliveryDate: '2026-07-10', leadDays: 1
   },
   {
-    project: 'АСУДД 1', object: 'СВХ', work: 'Кабельная канализация на эстакаде В4', name: 'Уголок', responsible: 'Прораб', unit: 'шт', need: 2000, stock: 0, reserved: 1500,
+    project: 'АСУДД 1', object: 'СВХ', work: 'Кабельная канализация на эстакаде ДВ-4', name: 'Уголок', responsible: 'Прораб', unit: 'шт', need: 2000, stock: 0, reserved: 1500,
     confirmed: 1500, deliveryDate: '2026-07-11', leadDays: 2
   },
   {
-    project: 'АСУДД 1', object: 'СВХ', work: 'Кабельная канализация на эстакаде В4', name: 'Хомуты', responsible: 'Кладовщик', unit: 'шт', need: 4500, stock: 0, reserved: 2500,
+    project: 'АСУДД 1', object: 'СВХ', work: 'Кабельная канализация на эстакаде ДВ-4', name: 'Хомуты', responsible: 'Кладовщик', unit: 'шт', need: 4500, stock: 0, reserved: 2500,
     confirmed: 2500, deliveryDate: '2026-07-10', leadDays: 1
   }
 ];
@@ -27,8 +27,29 @@ function loadMaterials() {
   try {
     const parsed = JSON.parse(saved);
     if (Array.isArray(parsed)) {
-      return parsed;
-    }
+  const migratedMaterials =
+    parsed.map(function (row) {
+      if (
+        row.work ===
+        'Кабельная канализация на эстакаде В4'
+      ) {
+        return {
+          ...row,
+          work:
+            'Кабельная канализация на эстакаде ДВ-4'
+        };
+      }
+
+      return row;
+    });
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(migratedMaterials)
+  );
+
+  return migratedMaterials;
+}
   } catch (error) {
     console.warn('Не удалось прочитать сохранённые данные BuildMind:', error);
   }
@@ -57,40 +78,99 @@ function addDays(date, days) {
 }
 
 function riskFor(row, needDate, today) {
-  const free = Math.max(row.stock - row.reserved, 0);
-  const available = free + row.confirmed;
-  const deficit = Math.max(row.need - available, 0);
-  const orderDeadline = addDays(needDate, -row.leadDays);
-  const delivery = parseDate(row.deliveryDate);
+  const stock =
+    Number(row.stock) || 0;
+
+  const reserved =
+    Number(row.reserved) || 0;
+
+  const confirmed =
+    Number(row.confirmed) || 0;
+
+  const need =
+    Number(row.need) || 0;
+
+  const leadDays =
+    Number(row.leadDays) || 0;
+
+  const free =
+    Math.max(stock - reserved, 0);
+
+  const available =
+    free + confirmed;
+
+  const deficit =
+    Math.max(need - available, 0);
+
+  const orderDeadline =
+    needDate
+      ? addDays(
+          needDate,
+          -leadDays
+        )
+      : null;
+
+  const delivery =
+    parseDate(row.deliveryDate);
+
+  if (!needDate) {
+    return {
+      level: 'critical',
+      text: 'Критический',
+      action:
+        'Для материала не найден контекст работы. ' +
+        'Проверьте проект, объект, название работы ' +
+        'и дату начала по ГПР.'
+    };
+  }
 
   if (deficit > 0) {
     return {
       level: 'critical',
       text: 'Критический',
-      action: `Оформить дополнительную заявку на ${deficit} ${row.unit}. Крайняя дата заказа: ${formatDate(orderDeadline)}.`
+      action:
+        `Оформить дополнительную заявку на ` +
+        `${deficit} ${row.unit}. ` +
+        `Крайняя дата заказа: ` +
+        `${formatDate(orderDeadline)}.`
     };
   }
 
-  if (delivery && delivery > needDate) {
+  if (
+    delivery &&
+    delivery > needDate
+  ) {
     return {
       level: 'critical',
       text: 'Критический',
-      action: 'Поставка позже даты потребности. Ускорить поставку или найти резервного поставщика.'
+      action:
+        'Поставка позже даты потребности. ' +
+        'Ускорить поставку или найти ' +
+        'резервного поставщика.'
     };
   }
 
-  if (today > orderDeadline && row.confirmed === 0) {
+  if (
+    orderDeadline &&
+    today > orderDeadline &&
+    confirmed === 0
+  ) {
     return {
       level: 'warning',
       text: 'Предупреждение',
-      action: 'Крайняя дата заказа уже прошла. Проверьте наличие резерва или альтернативного поставщика.'
+      action:
+        'Крайняя дата заказа уже прошла. ' +
+        'Проверьте наличие резерва или ' +
+        'альтернативного поставщика.'
     };
   }
 
   return {
     level: 'ok',
     text: 'ОК',
-    action: 'Материал обеспечен при условии подтверждения статуса поставки.'
+    action:
+      'Материал обеспечен при условии ' +
+      'подтверждения статуса поставки.'
   };
 }
 let activeControlFilter = 'all';
@@ -160,25 +240,18 @@ function getMaterialScheduleForControl(row) {
       );
     });
 
-  const technicalStartDate =
-    document.getElementById('workStartDate');
+ const startDateValue =
+  matchedContext &&
+  matchedContext.startDate
+    ? matchedContext.startDate
+    : '';
 
-  const technicalSafetyDays =
-    document.getElementById('safetyDays');
-
-  const startDateValue =
-    matchedContext && matchedContext.startDate
-      ? matchedContext.startDate
-      : technicalStartDate
-        ? technicalStartDate.value
-        : '';
-
-  const safetyDays =
-    matchedContext
-      ? Number(matchedContext.safetyDays || 0)
-      : technicalSafetyDays
-        ? Number(technicalSafetyDays.value || 0)
-        : 0;
+const safetyDays =
+  matchedContext
+    ? Number(
+        matchedContext.safetyDays || 0
+      )
+    : 0;
 
   const startDate =
     parseDate(startDateValue);
@@ -852,21 +925,54 @@ function render() {
   const tbody = document.querySelector('#materialsTable tbody');
   tbody.innerHTML = '';
 
-  const startDate = parseDate(document.getElementById('workStartDate').value);
-  const safetyDays = Number(document.getElementById('safetyDays').value || 0);
-  const today = parseDate(document.getElementById('todayDate').value) || new Date();
-  const needDate = addDays(startDate, -safetyDays);
+ const today =
+  parseDate(
+    document.getElementById(
+      'todayDate'
+    ).value
+  ) || new Date();
 
   let critical = 0;
   let warning = 0;
   let ok = 0;
 
   materials.forEach((row, index) => {
-    const free = Math.max(row.stock - row.reserved, 0);
-    const available = free + row.confirmed;
-    const deficit = Math.max(row.need - available, 0);
-    const orderDeadline = addDays(needDate, -row.leadDays);
-    const risk = riskFor(row, needDate, today);
+  const schedule =
+    getMaterialScheduleForControl(row);
+
+  const needDate =
+    schedule.needDate;
+
+  const free =
+    Math.max(
+      Number(row.stock || 0) -
+      Number(row.reserved || 0),
+      0
+    );
+    const available =
+  free + Number(row.confirmed || 0);
+
+const deficit =
+  Math.max(
+    Number(row.need || 0) -
+    available,
+    0
+  );
+
+const orderDeadline =
+  needDate
+    ? addDays(
+        needDate,
+        -Number(row.leadDays || 0)
+      )
+    : null;
+
+const risk =
+  riskFor(
+    row,
+    needDate,
+    today
+  );
 
     if (risk.level === 'critical') critical++;
     if (risk.level === 'warning') warning++;
